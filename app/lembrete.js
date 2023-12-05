@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,14 +7,34 @@ import {
   Text,
 } from "react-native";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-function Lembrete() {
+function Lembrete({}) {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const [reminderContent, setReminderContent] = useState("");
 
   function back() {
     router.back();
   }
+
+  async function loadReminder() {
+    var reminders = JSON.parse(await AsyncStorage.getItem("reminders"));
+
+    console.log(params.reminderIndex);
+
+    var reminder = reminders.filter((r, i) => {
+      return i === Number(params.reminderIndex);
+    })[0];
+
+    setReminderContent(reminder.content);
+  }
+
+  useEffect(() => {
+    loadReminder();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -26,6 +47,7 @@ function Lembrete() {
         multiline={true}
         style={styles.input}
         placeholder="Digite o conteúdo do seu lembrete"
+        value={reminderContent}
       />
 
       <TouchableOpacity style={styles.botaoSalvar}>

@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  Keyboard,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,8 +19,13 @@ function Home() {
 
   const router = useRouter();
 
-  function goto() {
-    router.push("/lembrete");
+  function goto(index) {
+    router.push({
+      pathname: "/lembrete",
+      params: {
+        reminderIndex: index,
+      },
+    });
   }
 
   function updateText(text) {
@@ -36,6 +42,8 @@ function Home() {
 
     await AsyncStorage.setItem("reminders", JSON.stringify(reminders));
     setReminders(reminders);
+    setInputText("");
+    Keyboard.dismiss();
   }
 
   async function loadReminders() {
@@ -46,11 +54,30 @@ function Home() {
     setReminders(savedReminders);
   }
 
-  function ComponenteLembrete({ item }) {
+  async function removeReminder(index) {
+    var reminders = JSON.parse(await AsyncStorage.getItem("reminders")) || [];
+
+    reminders.splice(index, 1);
+
+    await AsyncStorage.setItem("reminders", JSON.stringify(reminders));
+    setReminders(reminders);
+  }
+
+  function ComponenteLembrete({ item, index }) {
     return (
-      <TouchableOpacity style={styles.lembrete} onPress={goto}>
+      <TouchableOpacity
+        style={styles.lembrete}
+        onPress={() => {
+          goto(index);
+        }}
+      >
         <Text style={styles.lembreteTexto}>{item.content}</Text>
-        <TouchableOpacity style={styles.lembreteBotao}>
+        <TouchableOpacity
+          style={styles.lembreteBotao}
+          onPress={() => {
+            removeReminder(index);
+          }}
+        >
           <Icons name="trash" size={32} />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -70,8 +97,8 @@ function Home() {
         }}
         contentContainerStyle={styles.content}
         data={reminders}
-        renderItem={({ item }) => {
-          return <ComponenteLembrete item={item} />;
+        renderItem={({ item, index }) => {
+          return <ComponenteLembrete item={item} index={index} />;
         }}
         ListEmptyComponent={<Text>Lista vazia...</Text>}
       />
