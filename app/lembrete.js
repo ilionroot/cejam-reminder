@@ -15,6 +15,7 @@ function Lembrete({}) {
   const params = useLocalSearchParams();
 
   const [reminderContent, setReminderContent] = useState("");
+  const [reminderCreatedAt, setReminderCreatedAt] = useState(new Date());
 
   function back() {
     router.back();
@@ -23,13 +24,21 @@ function Lembrete({}) {
   async function loadReminder() {
     var reminders = JSON.parse(await AsyncStorage.getItem("reminders"));
 
-    console.log(params.reminderIndex);
-
     var reminder = reminders.filter((r, i) => {
       return i === Number(params.reminderIndex);
     })[0];
 
     setReminderContent(reminder.content);
+    setReminderCreatedAt(new Date(reminder.createdAt));
+  }
+
+  async function saveReminder() {
+    var reminders = JSON.parse(await AsyncStorage.getItem("reminders"));
+
+    reminders[params.reminderIndex].content = reminderContent;
+
+    await AsyncStorage.setItem("reminders", JSON.stringify(reminders));
+    router.back();
   }
 
   useEffect(() => {
@@ -48,9 +57,20 @@ function Lembrete({}) {
         style={styles.input}
         placeholder="Digite o conteúdo do seu lembrete"
         value={reminderContent}
+        onChangeText={(text) => setReminderContent(text)}
       />
+      <Text style={styles.createdAt}>
+        {reminderCreatedAt.getUTCDate().toString().padStart(2, "0") +
+          "/" +
+          (Number(reminderCreatedAt.getUTCMonth().toString().padStart(2, "0")) +
+            1) +
+          "/" +
+          reminderCreatedAt.getUTCFullYear() +
+          ", " +
+          reminderCreatedAt.toLocaleTimeString()}
+      </Text>
 
-      <TouchableOpacity style={styles.botaoSalvar}>
+      <TouchableOpacity style={styles.botaoSalvar} onPress={saveReminder}>
         <Text style={styles.botaoSalvarText}>Salvar</Text>
       </TouchableOpacity>
     </View>
@@ -85,6 +105,14 @@ const styles = StyleSheet.create({
   botaoSalvarText: {
     fontSize: 24,
     fontWeight: "700",
+  },
+  createdAt: {
+    width: "50%",
+    marginTop: 32,
+    backgroundColor: "#D9D9D9",
+    borderRadius: 24,
+    padding: 16,
+    fontSize: 12,
   },
 });
 

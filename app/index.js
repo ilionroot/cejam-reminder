@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   Keyboard,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -33,6 +34,11 @@ function Home() {
   }
 
   async function addReminder() {
+    if (inputText === "" || !inputText) {
+      Alert.alert("Aviso", "Campo vazio... digite antes de adicionar");
+      return;
+    }
+
     var reminders = JSON.parse(await AsyncStorage.getItem("reminders")) || [];
 
     reminders.push({
