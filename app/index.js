@@ -17,6 +17,7 @@ import Icons from "react-native-vector-icons/FontAwesome";
 function Home() {
   const [inputText, setInputText] = useState("");
   const [reminders, setReminders] = useState([]);
+  const [pesquisa, setPesquisa] = useState("");
 
   const router = useRouter();
 
@@ -42,7 +43,9 @@ function Home() {
     var reminders = JSON.parse(await AsyncStorage.getItem("reminders")) || [];
 
     reminders.push({
-      content: inputText,
+      title: inputText,
+      content: "",
+      datetime: null,
       createdAt: new Date(),
     });
 
@@ -77,7 +80,19 @@ function Home() {
           goto(index);
         }}
       >
-        <Text style={styles.lembreteTexto}>{item.content}</Text>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+            height: "100%",
+            overflow: "hidden",
+          }}
+        >
+          <Text style={styles.lembreteTexto}>{item.title}</Text>
+          <Text style={styles.lembreteTextoConteudo}>{item.content}</Text>
+        </View>
         <TouchableOpacity
           style={styles.lembreteBotao}
           onPress={() => {
@@ -97,12 +112,29 @@ function Home() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Cejam Reminder</Text>
+
+      <TextInput
+        style={styles.barraDePesquisa}
+        placeholder="Pesquise um lembrete"
+        value={pesquisa}
+        onChangeText={(text) => setPesquisa(text)}
+      />
+
       <FlatList
         style={{
           flex: 1,
         }}
         contentContainerStyle={styles.content}
-        data={reminders}
+        data={reminders.filter((reminder) => {
+          if (
+            reminder.title
+              .toLowerCase()
+              .replace(" ", "")
+              .includes(pesquisa.toLowerCase().replace(" ", ""))
+          ) {
+            return reminder;
+          }
+        })}
         renderItem={({ item, index }) => {
           return <ComponenteLembrete item={item} index={index} />;
         }}
@@ -126,6 +158,7 @@ function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 24,
   },
   title: {
     fontSize: 32,
@@ -170,10 +203,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#D9D9D9",
+    gap: 12,
   },
   lembreteTexto: {
     fontSize: 24,
-    flex: 1,
+    fontWeight: "500",
   },
   lembreteBotao: {
     width: 60,
@@ -182,6 +216,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#BEBEBE",
+  },
+  lembreteTextoConteudo: {
+    opacity: 0.5,
+  },
+  barraDePesquisa: {
+    height: 55,
+    backgroundColor: "#ECECEC",
+    borderRadius: 32,
+    paddingHorizontal: 24,
+    fontSize: 18,
+    marginHorizontal: 24,
+    marginBottom: 12,
   },
 });
 
